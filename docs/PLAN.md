@@ -1,6 +1,6 @@
 # Plan — Grupey pre-registro (v2)
 
-Estado: **pendiente de OK de JP**. No se escribe código hasta recibirlo.
+Estado: **aprobado por JP** (2 oct 2026): construir en `Waiting-List-grupey`, Supabase recuperado, fecha provisional.
 
 ## Auditoría del boceto (verificada)
 
