@@ -41,7 +41,9 @@ Igual que la sección 2 de la guía (diagrama en `landing/README.md`): HTML est�
 - CSP estricta y headers de la sección 9 en `vercel.json`.
 - Sin headers CORS. `OPTIONS` y otros métodos → 405.
 - Verificación de `Origin` desde `ALLOWED_ORIGINS`, más las URLs de preview automáticas.
-- Rate limit con Upstash por IP y por correo. Llaves con HMAC. Fail-open a los 500 ms con log `warn`.
+- Rate limit con Upstash por IP (20/min) y por correo + IP (10/día; desviación de la guía para que nadie bloquee el registro de otra persona). Llaves con HMAC. Fail-open a los 500 ms con log `warn`.
+- Alertas de 5xx a Sentry sin datos personales (opcional con `SENTRY_DSN`).
+- `/api/health` cacheado 15 s en la CDN.
 - Honeypot, con conteo en los logs.
 - Límite de 8 KB, revisando `Content-Length` y leyendo con tope.
 - SSL verificado con CA; nunca `rejectUnauthorized: false`.
@@ -50,7 +52,7 @@ Igual que la sección 2 de la guía (diagrama en `landing/README.md`): HTML est�
 - `.env*` en `.gitignore`. `npm audit --audit-level=high`: 0 vulnerabilidades.
 
 **Pendiente:**
-- Sentry: no está integrado. Hoy los 5xx quedan solo en Vercel Runtime Logs.
+- Monitor de uptime: se configura fuera del repo (Better Stack o UptimeRobot).
 - `includeSubDomains` de HSTS: se agrega cuando se confirme HTTPS en todos los subdominios.
 - Turnstile: plan B, no implementado.
 
@@ -105,7 +107,7 @@ Development, staging, producción y rollback están en `landing/README.md`. La l
 7. Verificar las promesas de pago de la landing contra el backend y Stripe.
 8. SPF, DKIM y DMARC, y el link de baja para el correo del lanzamiento.
 9. Respaldos del plan de Supabase y simulacro de restauración.
-10. Sentry y monitor de uptime.
+10. `SENTRY_DSN` en producción y monitor de uptime.
 11. Analytics de visitas sin cookies (decisión de JP).
 12. `grupey-backend` `/v1/health` en 503.
 

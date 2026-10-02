@@ -1,4 +1,5 @@
 import { ipAddress } from '@vercel/functions';
+import type { Alerter } from './alert';
 import type { Config, ConfigResult } from './config';
 import { classifyDbError, type Database } from './db';
 import { errorFields, hmac16, hmacHex, type Logger } from './log';
@@ -14,6 +15,8 @@ export interface PreRegisterDeps {
   db: Database | null;
   limiters: RateLimiters | null;
   log: Logger;
+  /** Alerta de errores 5xx (Sentry); opcional. */
+  alert?: Alerter;
 }
 
 type Outcome = { status: number; code: ApiCode; headers?: Record<string, string> };
@@ -74,6 +77,12 @@ export function createPreRegisterHandler(deps: PreRegisterDeps) {
         code: outcome.code,
         duration_ms: Date.now() - started,
       });
+      if (outcome.status >= 500) {
+        deps.alert?.({
+          message: `pre_register ${outcome.code}`,
+          tags: { code: outcome.code, status: outcome.status, request_id: requestId, err_code: fields.err_code as string, err_name: fields.err_name as string },
+        });
+      }
       if (formEncoded) {
         return redirectResponse(outcome.status === 200 ? '/gracias' : '/registro-error', requestId);
       }
@@ -150,7 +159,9 @@ export function createPreRegisterHandler(deps: PreRegisterDeps) {
       const email = normalizeEmail(body.email);
       if (!email.ok) return finish({ status: 400, code: 'invalid_email' });
 
-      const emailKey = hmacHex(config.logHashSecret, email.normalized);
+      // Límite por correo Y origen: un tercero que conoce un correo no puede bloquear su registro
+      // desde otra red. El volumen total por IP ya lo frena el límite por IP.
+      const emailKey = hmacHex(config.logHashSecret, `${email.normalized}|${ip}`);
       fields.email_hmac = hmac16(config.logHashSecret, email.normalized);
       const emailLimit = await checkLimit(deps.limiters.email, emailKey);
       if (emailLimit.failedOpen) deps.log('warn', 'rate_limit_fail_open', { request_id: requestId, limiter: 'email' });

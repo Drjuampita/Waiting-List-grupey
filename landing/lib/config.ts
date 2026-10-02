@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { parseSentryDsn } from './alert';
 
 export type AppEnv = 'production' | 'preview' | 'development';
 
@@ -15,6 +16,8 @@ export interface Config {
   ipPerMinute: number;
   emailPerDay: number;
   rateLimitPrefix: string;
+  /** Alertas de 5xx; opcional (recomendado en producción). */
+  sentryDsn: string | null;
 }
 
 export type ConfigResult = { ok: true; config: Config } | { ok: false; problems: string[] };
@@ -99,6 +102,9 @@ export function loadConfig(env: Env, readCa: (path: string) => string | null = r
   if (ipPerMinute === null) problems.push('RATE_LIMIT_IP_PER_MINUTE invalid');
   if (emailPerDay === null) problems.push('RATE_LIMIT_EMAIL_PER_DAY invalid');
 
+  const sentryDsn = env.SENTRY_DSN?.trim() || null;
+  if (sentryDsn && !parseSentryDsn(sentryDsn)) problems.push('SENTRY_DSN invalid');
+
   if (problems.length > 0) return { ok: false, problems };
   return {
     ok: true,
@@ -113,6 +119,7 @@ export function loadConfig(env: Env, readCa: (path: string) => string | null = r
       ipPerMinute: ipPerMinute!,
       emailPerDay: emailPerDay!,
       rateLimitPrefix: appEnv === 'production' ? 'waitlist:' : 'waitlist-dev:',
+      sentryDsn,
     },
   };
 }

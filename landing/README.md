@@ -64,12 +64,15 @@ Dashboard → Project Settings → Database → SSL → descargar el certificado
 | `LOG_HASH_SECRET` | sí | 32+ caracteres | **distinto** | **distinto** |
 | `RATE_LIMIT_IP_PER_MINUTE` / `RATE_LIMIT_EMAIL_PER_DAY` | no | 20 / 10 | 20 / 10 | 20 / 10 (súbelo el día de un evento) |
 | `DATABASE_CA_PATH` | no | — | opcional | opcional |
+| `SENTRY_DSN` | no | — | opcional | recomendado |
 
 Prefijo de Redis: `waitlist:` en producción, `waitlist-dev:` en los demás.
 
 La configuración se valida al cargar el módulo. En producción la función **se niega a operar** (503 + log `invalid_config` con los nombres de las variables, nunca sus valores) si `DATABASE_URL` apunta a localhost, faltan Upstash o algún secreto, o `ALLOWED_ORIGINS` incluye localhost o `.vercel.app`.
 
-Sentry (`SENTRY_DSN`) no está integrado todavía: los errores quedan en Vercel Runtime Logs con `level: "error"`. Ver "Pendientes".
+Con `SENTRY_DSN`, cada 5xx y cada fallo de `/api/health` manda una alerta a Sentry (sin SDK, por la API de envelopes). Solo viajan códigos y `request_id`, nunca correo, IP ni `err.message`. Máximo una alerta por tipo y minuto por instancia.
+
+Rate limit: 20/min por IP y 10/día por **correo + IP**. Así, un tercero que conoce un correo no puede bloquear el registro de esa persona desde otra red.
 
 ## Contrato de la API
 
@@ -103,7 +106,7 @@ Respuesta: `{ "ok": true, "code": "registered", "request_id": "…" }`, con `Cac
 
 ### `GET /api/health`
 
-`select 1` con tope de 2 s, cacheado 15 s por instancia. `{"status":"ok"}` (200) o `{"status":"degraded"}` (503).
+`select 1` con tope de 2 s, cacheado 15 s por instancia y 15 s en la CDN (`s-maxage=15`), así que abusar del endpoint no llega a la base. `{"status":"ok"}` (200) o `{"status":"degraded"}` (503).
 
 ## Desarrollo local
 

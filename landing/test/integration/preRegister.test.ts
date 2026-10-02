@@ -154,11 +154,26 @@ describe('API + base', () => {
     assert.ok(Number(blocked.res.headers.get('retry-after')) >= 1);
 
     for (let i = 0; i < 10; i++) {
-      assert.equal((await call(handle, postJson(body('mismo@example.com')))).status, 200);
+      assert.equal((await call(handle, postJson(body('mismo@example.com'), { ip: '198.51.100.9' }))).status, 200);
     }
-    const byEmail = await call(handle, postJson(body('MISMO@example.com')));
+    const byEmail = await call(handle, postJson(body('MISMO@example.com'), { ip: '198.51.100.9' }));
     assert.equal(byEmail.status, 429);
     assert.ok(byEmail.res.headers.get('retry-after'));
+    // Un tercero que agotó el límite desde su red no bloquea a la persona real en otra red.
+    const owner = await call(handle, postJson(body('mismo@example.com'), { ip: '192.0.2.44' }));
+    assert.equal(owner.status, 200);
+  });
+
+  test('5xx dispara una alerta solo con códigos (sin correo ni IP)', async () => {
+    const alerts: unknown[] = [];
+    const downConfig = testConfig({ DATABASE_URL: 'postgresql://waitlist_writer:x@127.0.0.1:1/postgres' });
+    const { handle, deps } = makeApp({ config: downConfig });
+    deps.alert = (e) => alerts.push(e);
+    await call(handle, postJson(body('alerta@example.com'), { ip: '203.0.113.99' }));
+    assert.equal(alerts.length, 1);
+    const text = JSON.stringify(alerts);
+    assert.match(text, /service_unavailable/);
+    assert.ok(!text.includes('alerta@example.com') && !text.includes('203.0.113.99'));
   });
 
   test('12. Upstash caído o lento → fail-open con log warn', async () => {
@@ -301,7 +316,9 @@ describe('API + base', () => {
 describe('health', () => {
   test('ok con base viva, degraded con base caída', async () => {
     const ok = createHealthHandler(createDatabase(testConfig()), () => {});
-    assert.equal((await ok(new Request('http://localhost/api/health'))).status, 200);
+    const okRes = await ok(new Request('http://localhost/api/health'));
+    assert.equal(okRes.status, 200);
+    assert.match(okRes.headers.get('cache-control')!, /s-maxage=15/);
     const downDb = createDatabase(testConfig({ DATABASE_URL: `postgresql://waitlist_writer:${WRITER_PASSWORD}@127.0.0.1:1/x` }));
     const down = await createHealthHandler(downDb, () => {})(new Request('http://localhost/api/health'));
     assert.equal(down.status, 503);
