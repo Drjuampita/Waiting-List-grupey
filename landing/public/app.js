@@ -138,7 +138,9 @@
         landing_path: location.pathname,
         website: honeypot ? honeypot.value : ''
       };
-      Object.keys(attribution).forEach(function (k) { payload[k] = attribution[k]; });
+      ATTR_FIELDS.concat('referrer_host').forEach(function (k) {
+        if (typeof attribution[k] === 'string') payload[k] = attribution[k];
+      });
 
       setSending(true);
       sendWithRetry(payload).then(function (r) {

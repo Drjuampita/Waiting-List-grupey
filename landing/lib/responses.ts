@@ -47,5 +47,6 @@ export function redirectResponse(location: string, requestId: string): Response 
 
 export function requestIdOf(request: Request): string {
   const vercelId = request.headers.get('x-vercel-id');
-  return vercelId && vercelId.length <= 200 ? vercelId : crypto.randomUUID();
+  // Solo se refleja si tiene el formato de Vercel (p. ej. "iad1::abc12-123"); nunca texto arbitrario.
+  return vercelId && /^[a-z0-9]{1,10}(::[a-z0-9-]{1,64}){1,4}$/i.test(vercelId) ? vercelId : crypto.randomUUID();
 }
