@@ -430,6 +430,11 @@ footer { background: var(--ink); color: rgba(251,249,244,0.8); padding: 64px 0 4
 footer .fine { border-top: 1px solid rgba(251,249,244,0.14); padding-top: 28px; font-size: 11.5px; line-height: 1.7; color: rgba(251,249,244,0.45); max-width: 88ch; }
 footer .logo-word { color: var(--bone-inverse); }
 
+/* compatibilidad con el boceto: sin <!doctype> se renderizaba en quirks mode, donde una línea
+   que solo contiene un <span> pequeño no hereda el alto de línea del padre. En modo estándar
+   esas líneas crecían unos px; como bloque se ven idénticas al boceto. */
+.hcard-goal .mini, .case-body .money { display: block; }
+
 /* reveal on scroll */
 .reveal { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {

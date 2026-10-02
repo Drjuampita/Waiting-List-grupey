@@ -23,6 +23,9 @@
     "@playwright/test": "1.56",
     "@types/node": "^20.19.43",
     "@types/pg": "^8.23.1",
+    "@types/pngjs": "^6.0.5",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }

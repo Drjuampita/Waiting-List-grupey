@@ -1,0 +1,188 @@
+--- design/boceto.html	2026-10-02 01:27:02.461516150 +0000
++++ public/index.html	2026-10-02 01:33:20.521583471 +0000
+@@ -1,4 +1,29 @@
+-<title>Grupey — Boceto landing web</title>
++<!doctype html>
++<html lang="es-MX">
++<head>
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width, initial-scale=1">
++<title>Grupey — Los planes en grupo, por fin se cumplen</title>
++<meta name="description" content="Cada quien autoriza su parte y nadie paga hasta que estén todos. Únete a la lista de espera de Grupey: los de la lista entran primero.">
++<link rel="canonical" href="https://grupey.com/">
++<meta property="og:type" content="website">
++<meta property="og:locale" content="es_MX">
++<meta property="og:site_name" content="Grupey">
++<meta property="og:url" content="https://grupey.com/">
++<meta property="og:title" content="Grupey — Los planes en grupo, por fin se cumplen">
++<meta property="og:description" content="Cada quien autoriza su parte y nadie paga hasta que estén todos. Únete a la lista de espera.">
++<meta property="og:image" content="https://grupey.com/og.png">
++<meta property="og:image:width" content="1200">
++<meta property="og:image:height" content="630">
++<meta name="twitter:card" content="summary_large_image">
++<meta name="twitter:title" content="Grupey — Los planes en grupo, por fin se cumplen">
++<meta name="twitter:description" content="Cada quien autoriza su parte y nadie paga hasta que estén todos. Únete a la lista de espera.">
++<meta name="twitter:image" content="https://grupey.com/og.png">
++<link rel="icon" href="/favicon.ico" sizes="any">
++<link rel="icon" href="/icon.png" type="image/png">
++<link rel="apple-touch-icon" href="/apple-touch-icon.png">
++<meta name="theme-color" content="#FBF9F4">
++<script src="/app.js" defer></script>
+ <style>
+ /* ============ FUENTES REALES DE LA APP + POPPINS (labels) ============ */
+ @font-face { font-family: 'Fraunces'; font-weight: 400; font-style: normal; font-display: swap;
+@@ -34,6 +59,7 @@
+   --sunset: #ED7E4E;
+   --seafoam: #2DA8A2;
+   --success: #0F766E;
++  --danger: #C8402E;
+   --border-subtle: rgba(21,35,60,0.10);
+   --border-default: rgba(21,35,60,0.16);
+   --serif: 'Fraunces', Georgia, serif;
+@@ -145,6 +171,13 @@
+   border-radius: 16px; padding: 16px 20px; font-size: 15px; color: var(--success); font-weight: 500;
+ }
+ .waitlist-ok .check { width: 22px; height: 22px; border-radius: 50%; background: var(--seafoam); color: #fff; display: grid; place-items: center; font-size: 13px; flex: none; }
++/* estados de envío y error (landing conectada) */
++.waitlist.is-sending { opacity: 0.7; cursor: progress; }
++.waitlist.is-sending button { cursor: progress; }
++.waitlist-error { margin-top: 12px; max-width: 460px; font-size: 14px; line-height: 1.5; color: var(--danger); }
++.waitlist-error a, .waitlist-note a { color: inherit; text-decoration: underline; }
++.waitlist-error:focus { outline: none; }
++.hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+ 
+ /* escenario del hero — el producto vivo flotando */
+ .hero-stage { position: relative; min-height: 420px; }
+@@ -369,6 +402,8 @@
+ .closing p { margin: 22px auto 34px; color: var(--slate); font-size: 17px; max-width: 42ch; }
+ .closing .waitlist { margin: 0 auto; justify-content: center; }
+ .closing .waitlist-ok { margin: 0 auto; }
++.closing .waitlist-error { margin: 12px auto 0; font-size: 14px; color: var(--danger); }
++.closing .waitlist-note { margin: 14px auto 0; font-size: 13px; color: var(--slate-muted); }
+ 
+ /* ============ FAQ ============ */
+ .faq { display: grid; grid-template-columns: 5fr 6fr; gap: clamp(32px, 6vw, 96px); padding: 0 0 110px; }
+@@ -395,13 +430,20 @@
+ footer .fine { border-top: 1px solid rgba(251,249,244,0.14); padding-top: 28px; font-size: 11.5px; line-height: 1.7; color: rgba(251,249,244,0.45); max-width: 88ch; }
+ footer .logo-word { color: var(--bone-inverse); }
+ 
++/* compatibilidad con el boceto: sin <!doctype> se renderizaba en quirks mode, donde una línea
++   que solo contiene un <span> pequeño no hereda el alto de línea del padre. En modo estándar
++   esas líneas crecían unos px; como bloque se ven idénticas al boceto. */
++.hcard-goal .mini, .case-body .money { display: block; }
++
+ /* reveal on scroll */
+ .reveal { opacity: 1; }
+ @media (prefers-reduced-motion: no-preference) {
+-  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+-  .reveal.seen { opacity: 1; transform: none; }
++  html.js .reveal { opacity: 0; transform: translateY(24px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
++  html.js .reveal.seen { opacity: 1; transform: none; }
+ }
+ </style>
++</head>
++<body>
+ 
+ <!-- ==================== NAV ==================== -->
+ <header class="nav">
+@@ -422,15 +464,17 @@
+ <section class="hero" id="top">
+   <div class="wrap hero-grid">
+     <div>
+-      <p class="eyebrow warm">Lanzamos en septiembre</p>
++      <p class="eyebrow warm">Lanzamos muy pronto</p>
+       <h1 style="margin-top:18px;">Los planes en grupo, <em>por fin <span class="swash">se cumplen.</span></em></h1>
+       <p class="sub">Cada quien autoriza su parte y nadie paga hasta que estén todos. Cuando el grupo se completa, se cobra parejo y el viaje queda reservado.</p>
+-      <form class="waitlist" id="lista" data-waitlist>
+-        <input type="email" required placeholder="tu@correo.com" aria-label="Tu correo electrónico">
++      <form class="waitlist" id="lista" data-waitlist="hero" method="post" action="/api/pre-register">
++        <input type="email" name="email" required placeholder="tu@correo.com" aria-label="Tu correo electrónico" autocomplete="email" inputmode="email" maxlength="254" autocapitalize="off" spellcheck="false">
++        <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+         <button class="btn btn-primary" type="submit">Únete a la lista</button>
+       </form>
++      <p class="waitlist-error" role="alert" tabindex="-1" hidden></p>
+       <div class="waitlist-ok" role="status"><span class="check">✓</span> ¡Listo! Cuando Grupey abra, tú entras primero.</div>
+-      <p class="waitlist-note">Sin spam. Solo un correo cuando abramos las puertas — los de la lista entran primero.</p>
++      <p class="waitlist-note">Sin spam. Solo un correo cuando abramos las puertas — los de la lista entran primero. Al unirte aceptas nuestro <a href="/privacidad">Aviso de privacidad</a>.</p>
+     </div>
+     <div class="hero-stage" aria-hidden="true">
+       <div class="hcard hcard-goal">
+@@ -653,11 +697,14 @@
+   <div class="wrap">
+     <h2>¿Hay plan?<br><span class="verb">Grupéalo.</span></h2>
+     <p>El chat es para los memes. Los planes que sí suceden, <span class="verb-c" style="font-weight:600;">se grupean</span>.</p>
+-    <form class="waitlist" data-waitlist>
+-      <input type="email" required placeholder="tu@correo.com" aria-label="Tu correo electrónico">
++    <form class="waitlist" data-waitlist="cierre" method="post" action="/api/pre-register">
++      <input type="email" name="email" required placeholder="tu@correo.com" aria-label="Tu correo electrónico" autocomplete="email" inputmode="email" maxlength="254" autocapitalize="off" spellcheck="false">
++      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+       <button class="btn btn-primary" type="submit">Únete a la lista</button>
+     </form>
++    <p class="waitlist-error" role="alert" tabindex="-1" hidden></p>
+     <div class="waitlist-ok" role="status"><span class="check">✓</span> ¡Listo! Cuando Grupey abra, tú entras primero.</div>
++    <p class="waitlist-note">Al unirte aceptas nuestro <a href="/privacidad">Aviso de privacidad</a>.</p>
+   </div>
+ </section>
+ 
+@@ -687,7 +734,7 @@
+     </details>
+     <details>
+       <summary>¿Cuándo lanza Grupey? <span class="plus">+</span></summary>
+-      <p class="answer">En septiembre de 2026. Los de la lista de espera entran primero y estrenan los viajes en grupo antes que nadie.</p>
++      <p class="answer">Muy pronto. Los de la lista de espera entran primero y estrenan los viajes en grupo antes que nadie.</p>
+     </details>
+   </div>
+ </section>
+@@ -702,46 +749,16 @@
+       </a>
+       <div class="foot-links">
+         <ul>
+-          <li><a href="#">Términos de servicio</a></li>
+-          <li><a href="#">Aviso de privacidad</a></li>
+-          <li><a href="#">Legal</a></li>
++          <li><a href="/privacidad">Aviso de privacidad</a></li>
+         </ul>
+         <ul>
+-          <li><a href="#">Contacto</a></li>
+-          <li><a href="#">@grupey</a></li>
++          <li><a href="mailto:hola@grupey.com">Contacto</a></li>
++          <li><a href="https://www.instagram.com/grupey/" target="_blank" rel="noopener">@grupey</a></li>
+         </ul>
+       </div>
+     </div>
+-    <p class="fine">© 2026 Grupey. Grupey es una plataforma de tecnología, no un banco ni una institución financiera. Grupey no custodia fondos: los pagos son procesados por Stripe y solo se cobran cuando el grupo alcanza su meta. Boceto de diseño — los montos y nombres mostrados son ilustrativos.</p>
++    <p class="fine">© 2026 Grupey. Grupey es una plataforma de tecnología, no un banco ni una institución financiera. Grupey no custodia fondos: los pagos son procesados por Stripe y solo se cobran cuando el grupo alcanza su meta. Los montos y nombres mostrados son ilustrativos.</p>
+   </div>
+ </footer>
+-
+-<script>
+-// pestañas del demo
+-document.querySelectorAll('.tab').forEach(function (tab) {
+-  tab.addEventListener('click', function () {
+-    document.querySelectorAll('.tab').forEach(function (t) { t.setAttribute('aria-selected', 'false'); });
+-    document.querySelectorAll('.panel').forEach(function (p) { p.classList.remove('on'); });
+-    tab.setAttribute('aria-selected', 'true');
+-    document.getElementById(tab.dataset.panel).classList.add('on');
+-  });
+-});
+-
+-// lista de espera (boceto: solo muestra confirmación)
+-document.querySelectorAll('[data-waitlist]').forEach(function (form) {
+-  form.addEventListener('submit', function (e) {
+-    e.preventDefault();
+-    form.style.display = 'none';
+-    var ok = form.parentElement.querySelector('.waitlist-ok');
+-    if (ok) ok.style.display = 'flex';
+-  });
+-});
+-
+-// revelado al hacer scroll
+-if ('IntersectionObserver' in window) {
+-  var io = new IntersectionObserver(function (entries) {
+-    entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('seen'); io.unobserve(en.target); } });
+-  }, { rootMargin: '0px 0px -10% 0px' });
+-  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+-}
+-</script>
++</body>
++</html>

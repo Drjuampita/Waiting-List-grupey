@@ -41,7 +41,7 @@ async function serveApi(route: Record<string, Handler>, req: IncomingMessage, re
   for (const [k, v] of Object.entries(req.headers)) if (typeof v === 'string') headers.set(k, v);
   headers.set('x-real-ip', req.socket.remoteAddress ?? '127.0.0.1');
   const hasBody = req.method !== 'GET' && req.method !== 'HEAD';
-  const request = new Request(url, { method: req.method, headers, body: hasBody ? await readBody(req) : undefined });
+  const request = new Request(url, { method: req.method, headers, body: hasBody ? new Uint8Array(await readBody(req)) : undefined });
   const response = handler ? await handler(request) : new Response(null, { status: 405 });
   res.statusCode = response.status;
   response.headers.forEach((v, k) => res.setHeader(k, v));
