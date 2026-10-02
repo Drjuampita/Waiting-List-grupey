@@ -72,8 +72,9 @@ export function loadConfig(env: Env, readCa: (path: string) => string | null = r
     if (!databaseCa) problems.push('Supabase CA certificate missing (certs/supabase-ca.crt)');
   }
 
-  const upstashUrl = env.UPSTASH_REDIS_REST_URL?.trim();
-  const upstashToken = env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  // KV_REST_API_* son los nombres que inyecta la integración de Upstash en el Marketplace de Vercel.
+  const upstashUrl = (env.UPSTASH_REDIS_REST_URL || env.KV_REST_API_URL)?.trim();
+  const upstashToken = (env.UPSTASH_REDIS_REST_TOKEN || env.KV_REST_API_TOKEN)?.trim();
   const upstash = upstashUrl && upstashToken ? { url: upstashUrl, token: upstashToken } : null;
   if (deployed && !upstash) problems.push('UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN missing');
 
