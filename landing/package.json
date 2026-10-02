@@ -1,0 +1,29 @@
+{
+  "name": "grupey-landing",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "normalize": "tsx scripts/normalize.ts",
+    "dev": "tsx scripts/dev-server.ts",
+    "test": "tsx --test --test-concurrency=1 --test-force-exit test/unit/*.test.ts test/integration/*.test.ts",
+    "test:unit": "tsx --test test/unit/*.test.ts",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@upstash/ratelimit": "^2.2.0",
+    "@upstash/redis": "^1.39.0",
+    "@vercel/functions": "^3.9.9",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56",
+    "@types/node": "^20.19.43",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}
